@@ -21,35 +21,6 @@ defmodule Digits.Model do
     |> Nx.equal(Nx.tensor(Enum.to_list(0..9)))
   end
 
-  def whatever() do
-    {images, labels} = Digits.Model.download()
-
-    batch_size = 32
-
-    images =
-      images
-      |> Digits.Model.transform_images()
-      |> Nx.to_batched(batch_size)
-      |> Enum.to_list()
-
-    labels =
-      labels
-      |> Digits.Model.transform_labels()
-      |> Nx.to_batched(batch_size)
-      |> Enum.to_list()
-
-    data =
-      Enum.zip(images, labels)
-
-    training_count = floor(0.8 * Enum.count(data))
-    validation_count = floor(0.2 * training_count)
-
-    {training_data, test_data} = Enum.split(data, training_count)
-    {validation_data, training_data} = Enum.split(training_data, validation_count)
-
-    {training_data, validation_data, test_data}
-  end
-
   def new({channels, height, width}) do
     Axon.input("input_0", shape: {nil, channels, height, width})
     |> Axon.flatten()
@@ -84,7 +55,30 @@ defmodule Digits.Model do
     |> Axon.deserialize()
   end
 
-  def path do
+  defp path do
     Path.join(Application.app_dir(:digits, "priv"), "model.axon")
+  end
+
+  def predict(path) do
+    mat =
+      Evision.imread(path, flags: Evision.Constant.cv_IMREAD_GRAYSCALE())
+      |> IO.inspect(label: "imread")
+
+    mat = Evision.resize(mat, {28, 28})
+    IO.inspect("Here!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+    data =
+      Evision.Mat.to_nx(mat)
+      |> Nx.reshape({1, 28, 28})
+      |> List.wrap()
+      |> Nx.stack()
+      |> Nx.backend_transfer()
+
+    {model, state} = load!()
+
+    model
+    |> Axon.predict(state, data)
+    |> Nx.argmax()
+    |> Nx.to_number()
   end
 end
