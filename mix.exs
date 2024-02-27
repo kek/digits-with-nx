@@ -50,9 +50,9 @@ defmodule Digits.MixProject do
       {:plug_cowboy, "~> 2.5"},
 
       # Machine learning packages
-      {:axon, "~> 0.5.1"},
-      {:exla, "~> 0.5.1"},
-      {:nx, "~> 0.5.1"},
+      {:axon, "~> 0.6.1"},
+      {:exla, "~> 0.7.1"},
+      {:nx, "~> 0.7.1"},
       {:scidata, "~> 0.1.5"},
       {:evision, "~> 0.1.28"}
     ]
