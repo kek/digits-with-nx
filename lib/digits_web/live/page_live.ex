@@ -4,8 +4,10 @@ defmodule DigitsWeb.PageLive do
   """
 
   use DigitsWeb, :live_view
+  require Logger
 
   def mount(_params, _session, socket) do
+    Process.send_after(self(), "tick", 1000)
     {:ok, assign(socket, %{prediction: nil})}
   end
 
@@ -16,8 +18,12 @@ defmodule DigitsWeb.PageLive do
     </div>
 
     <div>
-      <button phx-click="reset">Reset</button>
-      <button phx-click="predict">Predict</button>
+      <button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        phx-click="reset"
+      >
+        Reset
+      </button>
     </div>
 
     <%= if @prediction do %>
@@ -31,6 +37,12 @@ defmodule DigitsWeb.PageLive do
       </div>
     <% end %>
     """
+  end
+
+  def handle_info("tick", socket) do
+    Process.send_after(self(), "tick", 1000)
+    Logger.info("tick")
+    {:noreply, push_event(socket, "predict", %{})}
   end
 
   def handle_event("reset", _params, socket) do
